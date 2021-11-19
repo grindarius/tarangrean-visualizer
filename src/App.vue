@@ -5,7 +5,7 @@
         Tarangrean Visualizer
       </h1>
       <div class="navbar-end">
-        <mdicon name="github" />
+        <mdicon class="github-icon" name="github" />
       </div>
     </div>
   </nav>
@@ -33,8 +33,8 @@ export default defineComponent({
   @apply my-auto;
 }
 
-span.mdi-github > svg > path {
-  fill: #ffffff;
+.github-icon > svg > path {
+  fill: #FFFFFF;
 }
 
 .close-modal-icon > svg > path {
