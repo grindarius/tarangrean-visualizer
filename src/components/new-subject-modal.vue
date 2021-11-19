@@ -1,24 +1,21 @@
 <template>
-  <div class="modal-background" v-if="newSubjectModalState">
+  <div class="modal-background cursor-pointer" v-if="newSubjectModalState">
     <div class="modal">
       <!-- content -->
       <div class="modal-content">
         <!-- header -->
         <div class="modal-title">
-          <h1>Modal Title</h1>
+          <h1>Create new subject</h1>
           <button class="modal-close-button" @click="$emit('update:newSubjectModalState', !newSubjectModalState)">
             <mdicon class="close-modal-icon" name="close-circle-outline" />
           </button>
         </div>
         <!-- body -->
         <div class="modal-body">
-          <p class="modal-body-text">
-            I always felt like I could do anything. That’s the main
-            thing people are controlled by! Thoughts- their perception
-            of themselves! They're slowed down by their perception of
-            themselves. If you're taught you can’t do anything, you
-            won’t do anything. I was taught I could do everything.
-          </p>
+          <label for="subject-id" class="subject-id-label">Subject ID</label>
+          <input type="text" name="subject-id" class="subject-id-input">
+          <label for="subject-name" class="subject-name-label">Subject name</label>
+          <input type="text" class="subject-name-input">
         </div>
         <!-- footer -->
         <div class="modal-footer">
@@ -32,7 +29,7 @@
       </div>
     </div>
   </div>
-  <div v-if="newSubjectModalState" class="modal-background-color"></div>
+  <div class="modal-background-color" v-if="newSubjectModalState"></div>
 </template>
 
 <script lang="ts">
@@ -69,7 +66,7 @@ export default defineComponent({
 }
 
 .modal-title {
-  @apply flex items-start justify-between p-5 border-b border-solid border-blue-200 rounded-t;
+  @apply flex items-start justify-between p-5 border-b border-solid border-gray-200 rounded-t;
 
   h1 {
     @apply text-3xl font-semibold;
@@ -81,7 +78,7 @@ export default defineComponent({
 }
 
 .modal-body {
-  @apply relative p-6 flex-auto;
+  @apply relative px-5 py-3 flex-auto;
 }
 
 .modal-body-text {
@@ -89,7 +86,7 @@ export default defineComponent({
 }
 
 .modal-footer {
-  @apply flex items-center justify-end p-6 border-t border-solid border-blue-200 rounded-b;
+  @apply flex items-center justify-end p-6 border-t border-solid border-gray-200 rounded-b;
 }
 
 .modal-close-button-footer {
