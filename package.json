@@ -1,0 +1,44 @@
+{
+  "name": "tarangrean-manipulator",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "serve": "vite preview"
+  },
+  "dependencies": {
+    "@mdi/js": "^6.4.95",
+    "dayjs": "^1.10.7",
+    "mdi-vue": "^3.0.11",
+    "nanoid": "^3.1.30",
+    "postcss-import": "^14.0.2",
+    "vue": "^3.0.11",
+    "vue-i18n": "^8.26.7",
+    "vue-router": "^4.0.11"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.7",
+    "@typescript-eslint/eslint-plugin": "^4.29.3",
+    "@typescript-eslint/parser": "^4.29.3",
+    "@vitejs/plugin-vue": "^1.9.4",
+    "@vue/compiler-sfc": "^3.2.21",
+    "@vue/eslint-config-standard": "^6.1.0",
+    "@vue/eslint-config-typescript": "^7.0.0",
+    "autoprefixer": "^10.4.0",
+    "eslint": "^7.32.0",
+    "eslint-config-standard": "^16.0.3",
+    "eslint-config-standard-with-typescript": "^20.0.0",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^5.1.1",
+    "eslint-plugin-simple-import-sort": "^7.0.0",
+    "eslint-plugin-unused-imports": "^1.1.5",
+    "eslint-plugin-vue": "^7.20.0",
+    "postcss": "^8.3.11",
+    "sass": "^1.43.4",
+    "tailwindcss": "^2.2.19",
+    "typescript": "^4.4.4",
+    "vite": "^2.6.14",
+    "vue-tsc": "^0.29.3"
+  }
+}

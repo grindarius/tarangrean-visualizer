@@ -1,0 +1,14 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "eslint.validate": [
+    "typescript"
+  ],
+  "vetur.experimental.templateInterpolationService": true,
+  "vetur.validation.style": false,
+  "vetur.underline.refValue": false,
+  "files.watcherExclude": {
+    "**/target": true
+  },
+}
