@@ -13,18 +13,44 @@
         <!-- body -->
         <div class="modal-body">
           <label for="subject-id" class="subject-id-label">Subject ID</label>
-          <input type="text" name="subject-id" class="subject-id-input">
+          <input type="text" name="subject-id" class="subject-id-input" placeholder="254459" v-model="subjectId">
           <label for="subject-name" class="subject-name-label">Subject name</label>
-          <input type="text" class="subject-name-input">
+          <input type="text" name="subject-name" class="subject-name-input" placeholder="XBox Programming" v-model="subjectName">
+          <label for="subject-time" class="subject-time-label">Time</label>
+          <div class="datetime-controls">
+            <div class="datetime-selector-section">
+              <select name="day-dropdown" class="day-dropdown" v-model="selectedDate">
+                <option v-for="(day, i) in daysInWeek" :key="i" :value="day">{{ day }}</option>
+              </select>
+              <select name="start-time-dropdown" class="start-time-dropdown" v-model="selectedStartTime">
+                <option v-for="(time, i) in startTimeDropdown" :key="i" :value="time.key">{{ time.value }}</option>
+              </select>
+              <select name="end-time-dropdown" class="end-time-dropdown" v-model="selectedEndTime">
+                <option v-for="(time, i) in endTimeDropdown" :key="i" :value="time.key">{{ time.value }}</option>
+              </select>
+              <mdicon class="add-new-subject-schedule" name="plus-circle-outline" @click="addNewSchedule" />
+            </div>
+            <div v-for="(schedule, i) in schedules" :key="i" class="selected-datetimes">
+              <h1 class="font-sans text-md">
+                {{ schedule.day }}, {{ `${schedule.startTime.padStart(2, '0')}:00` }} to {{ `${schedule.endTime.padStart(2, '0')}:50` }}
+              </h1>
+              <mdicon name="minus-circle-outline" @click="deleteSchedule(i)" />
+            </div>
+          </div>
         </div>
         <!-- footer -->
         <div class="modal-footer">
-          <button class="modal-close-button-footer" type="button" @click="$emit('update:newSubjectModalState', !newSubjectModalState)">
-            Close
-          </button>
-          <button class="modal-accept-button" type="button" @click="$emit('update:newSubjectModalState', !newSubjectModalState)">
-            Save Changes
-          </button>
+          <h1 class="error-message">
+            {{ errorMessage }}
+          </h1>
+          <div>
+            <button class="modal-close-button-footer" type="button" @click="$emit('update:newSubjectModalState', !newSubjectModalState)">
+              Close
+            </button>
+            <button class="modal-accept-button" type="button" @click="addNewSubject">
+              Add
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -33,7 +59,9 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { computed, ComputedRef, defineComponent, PropType, Ref, ref, watch } from 'vue'
+
+import { DayInWeek, Pair, Subject, SubjectSchedule, TimeRange } from '@/types'
 
 export default defineComponent({
   name: 'new-subject-modal',
@@ -42,9 +70,122 @@ export default defineComponent({
       type: Boolean,
       required: true,
       default: false
+    },
+    subjects: {
+      type: Array as PropType<Array<Subject>>,
+      required: true,
+      default: () => []
     }
   },
-  emits: ['update:newSubjectModalState']
+  emits: [
+    'update:newSubjectModalState',
+    'update:subjects'
+  ],
+  setup (props, context) {
+    const generateTimeSequence = (start: number, end: number, skips: Array<number>): Array<number> => {
+      const arrayLength = end - start
+      return Array.from<number, number>({ length: arrayLength }, (_, i) => i + start).filter(i => !skips.includes(i))
+    }
+
+    const localSubjects: Ref<Array<Subject>> = ref(props.subjects)
+
+    const subjectId: Ref<string> = ref('')
+    const subjectName: Ref<string> = ref('')
+
+    const daysInWeek: Ref<Array<string>> = ref(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])
+    const selectedDate: Ref<DayInWeek> = ref('Monday')
+    const selectedStartTime: Ref<TimeRange> = ref('8')
+    const selectedEndTime: Ref<TimeRange> = ref('8')
+    const schedules: Ref<Array<SubjectSchedule>> = ref([])
+    const errorMessage: Ref<string> = ref('')
+
+    const startTimeDropdown: Ref<Array<Pair<TimeRange, string>>> = ref(generateTimeSequence(8, 20, [12]).map(time => {
+      return {
+        key: time.toString() as TimeRange,
+        value: `${time.toString().padStart(2, '0')}:00`
+      }
+    }))
+    const endTimeDropdown: ComputedRef<Array<Pair<TimeRange, string>>> = computed(() => {
+      return startTimeDropdown.value.map(time => {
+        return {
+          key: time.key,
+          value: `${time.key.padStart(2, '0')}:50`
+        }
+      }).filter(time => Number(time.key) >= Number(selectedStartTime.value))
+    })
+
+    const addNewSchedule = (): void => {
+      schedules.value.push({
+        day: selectedDate.value,
+        startTime: selectedStartTime.value,
+        endTime: selectedEndTime.value
+      })
+    }
+
+    const deleteSchedule = (index: number): void => {
+      schedules.value.splice(index, 1)
+    }
+
+    const validateInputs = (): string => {
+      if (subjectId.value === '') {
+        return 'Error: No subject id.'
+      }
+
+      if (schedules.value.length <= 0) {
+        return 'Error: No subject schedule defined.'
+      }
+
+      if (new Set(schedules.value.map(schedule => schedule.day + schedule.startTime + schedule.endTime)).size < schedules.value.length) {
+        return 'Error: There\'s a duplicate in schedule date and time.'
+      }
+      return ''
+    }
+
+    const addNewSubject = (): void => {
+      if (validateInputs() !== '') {
+        errorMessage.value = validateInputs()
+        setTimeout(() => {
+          errorMessage.value = ''
+        }, 2000)
+        return
+      } else {
+        errorMessage.value = ''
+      }
+
+      const newSubject: Subject = {
+        id: subjectId.value,
+        name: subjectName.value,
+        schedule: schedules.value
+      }
+
+      localSubjects.value.push(newSubject)
+      context.emit('update:subjects', localSubjects.value)
+      context.emit('update:newSubjectModalState', !props.newSubjectModalState)
+    }
+
+    watch(selectedStartTime, (value) => {
+      if (Number(value) > Number(selectedEndTime.value)) {
+        selectedEndTime.value = selectedStartTime.value
+      }
+    })
+
+    return {
+      startTimeDropdown,
+      endTimeDropdown,
+      selectedDate,
+      selectedStartTime,
+      selectedEndTime,
+      daysInWeek,
+      schedules,
+      addNewSchedule,
+      deleteSchedule,
+      subjectId,
+      subjectName,
+      validateInputs,
+      errorMessage,
+      addNewSubject
+    }
+  }
 })
 </script>
 
@@ -58,7 +199,7 @@ export default defineComponent({
 }
 
 .modal {
-  @apply relative w-auto my-6 mx-auto max-w-3xl;
+  @apply relative w-full my-6 mx-auto max-w-4xl;
 }
 
 .modal-content {
@@ -78,15 +219,12 @@ export default defineComponent({
 }
 
 .modal-body {
-  @apply relative px-5 py-3 flex-auto;
-}
-
-.modal-body-text {
-  @apply my-4 text-gray-500 text-lg leading-relaxed;
+  @apply relative px-5 py-3 grid gap-4;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 400px));
 }
 
 .modal-footer {
-  @apply flex items-center justify-end p-6 border-t border-solid border-gray-200 rounded-b;
+  @apply flex items-center justify-between p-6 border-t border-solid border-gray-200 rounded-b;
 }
 
 .modal-close-button-footer {
@@ -94,6 +232,51 @@ export default defineComponent({
 }
 
 .modal-accept-button {
-  @apply text-red-500 bg-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150;
+  @apply text-blue-500 bg-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150;
+}
+
+.subject-id-label {
+  @apply font-sans text-xl font-semibold;
+}
+
+.subject-name-label {
+  @apply font-sans text-xl font-semibold;
+}
+
+.subject-time-label {
+  @apply font-sans text-xl font-semibold;
+}
+
+.subject-id-input {
+  @apply w-full ring-2 ring-blue-500 rounded-md h-9 p-2 focus:ring-blue-700 outline-none;
+}
+
+.subject-name-input {
+  @apply w-full ring-2 ring-blue-500 rounded-md h-9 p-2 focus:ring-blue-700 outline-none;
+}
+
+.day-list {
+  @apply inline-block text-center;
+}
+
+.day-dropdown, .start-time-dropdown, .end-time-dropdown {
+  @apply w-full outline-none border-2 border-blue-500 rounded-md h-9 focus:border-blue-700 cursor-pointer;
+}
+
+.datetime-selector-section {
+  @apply grid gap-2;
+  grid-template-columns: 1fr 1fr 1fr 0.25fr;
+}
+
+.selected-datetimes {
+  @apply flex flex-row justify-between mt-3;
+
+  span {
+    @apply mr-1;
+  }
+}
+
+.error-message {
+  @apply text-red-500 font-sans font-bold text-lg;
 }
 </style>

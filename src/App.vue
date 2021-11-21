@@ -5,7 +5,9 @@
         Tarangrean Visualizer
       </h1>
       <div class="navbar-end">
-        <mdicon class="github-icon" name="github" />
+        <a href="https://github.com/grindarius/tarangrean-visualizer">
+          <mdicon class="github-icon" name="github" />
+        </a>
       </div>
     </div>
   </nav>
@@ -39,5 +41,9 @@ export default defineComponent({
 
 .close-modal-icon > svg > path {
   fill: #EF4444;
+}
+
+.add-new-subject-schedule {
+  @apply my-auto mx-0;
 }
 </style>

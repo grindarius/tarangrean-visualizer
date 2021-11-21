@@ -3,7 +3,7 @@
     <div class="container mx-auto p-3">
       <h1 class="text-3xl text-black font-sans mb-2">Subjects</h1>
       <div class="subject-list">
-        <div class="subject-item" v-for="(_, i) in subjectTemplate" :key="`subject-${i}`">
+        <div class="subject-item" v-for="(_, i) in subjects" :key="`subject-${i}`">
           <div class="subject-description">
             <h1 class="subject-id">{{ _.id }}</h1>
             <h1 class="subject-name">{{ _.name }}</h1>
@@ -16,17 +16,19 @@
           </div>
         </div>
       </div>
-    <new-subject-modal v-model:new-subject-modal-state="newSubjectModalState"></new-subject-modal>
+    <new-subject-modal
+      v-model:new-subject-modal-state="newSubjectModalState"
+      v-model:subjects="subjects">
+    </new-subject-modal>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import dayjs from 'dayjs'
 import { defineComponent, Ref, ref } from 'vue'
 
 import NewSubjectModal from '@/components/new-subject-modal.vue'
-import { Subject } from '@/types'
+import { DayInWeek, Subject, TimeRange } from '@/types'
 
 export default defineComponent({
   name: 'home',
@@ -34,14 +36,17 @@ export default defineComponent({
     'new-subject-modal': NewSubjectModal
   },
   setup () {
-    const subjectTemplate: Ref<Array<Subject>> = ref([
-      {
-        id: '22331',
-        name: 'xbox programming',
-        startTime: dayjs().startOf('day').add(9, 'hours'),
-        endTime: dayjs().startOf('day').add(11, 'hours')
-      }
-    ])
+    const subjects: Ref<Array<Subject>> = ref([{
+      id: '223344',
+      name: 'xbox prograomming',
+      schedule: [
+        {
+          day: 'Monday' as DayInWeek,
+          startTime: '8' as TimeRange,
+          endTime: '9' as TimeRange
+        }
+      ]
+    }])
     const newSubjectModalState = ref(false)
 
     const openNewSubjectModal = (): void => {
@@ -50,7 +55,7 @@ export default defineComponent({
 
     return {
       openNewSubjectModal,
-      subjectTemplate,
+      subjects,
       newSubjectModalState
     }
   }
