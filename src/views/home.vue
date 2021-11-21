@@ -1,9 +1,9 @@
 <template>
   <div class="page-wrapper">
     <div class="container mx-auto p-3">
-      <h1 class="text-3xl text-black font-sans mb-2">Subjects</h1>
+      <h1 class="text-3xl text-black font-sans mb-3">Subjects</h1>
       <div class="subject-list">
-        <div class="subject-item" v-for="(_, i) in subjects" :key="`subject-${i}`">
+        <div class="subject-item" v-for="(_, i) in subjects" :key="`subject-${i}`" @click="openEditSubjectModal(i)">
           <div class="subject-description">
             <h1 class="subject-id">{{ _.id }}</h1>
             <h1 class="subject-name">{{ _.name }}</h1>
@@ -20,6 +20,10 @@
       v-model:new-subject-modal-state="newSubjectModalState"
       v-model:subjects="subjects">
     </new-subject-modal>
+    <edit-subject-modal
+      v-model:edit-subject-modal-state="editSubjectModalState"
+      v-model:subject="selectedSubject">
+    </edit-subject-modal>
     </div>
   </div>
 </template>
@@ -27,36 +31,39 @@
 <script lang="ts">
 import { defineComponent, Ref, ref } from 'vue'
 
+import EditSubjectModal from '@/components/edit-subject-modal.vue'
 import NewSubjectModal from '@/components/new-subject-modal.vue'
-import { DayInWeek, Subject, TimeRange } from '@/types'
+import { Subject } from '@/types'
 
 export default defineComponent({
   name: 'home',
   components: {
-    'new-subject-modal': NewSubjectModal
+    'new-subject-modal': NewSubjectModal,
+    'edit-subject-modal': EditSubjectModal
   },
   setup () {
-    const subjects: Ref<Array<Subject>> = ref([{
-      id: '223344',
-      name: 'xbox prograomming',
-      schedule: [
-        {
-          day: 'Monday' as DayInWeek,
-          startTime: '8' as TimeRange,
-          endTime: '9' as TimeRange
-        }
-      ]
-    }])
+    const subjects: Ref<Array<Subject>> = ref([])
+    const selectedSubject: Ref<Subject> = ref({} as Subject)
+
     const newSubjectModalState = ref(false)
+    const editSubjectModalState = ref(false)
 
     const openNewSubjectModal = (): void => {
       newSubjectModalState.value = !newSubjectModalState.value
     }
 
+    const openEditSubjectModal = (i: number): void => {
+      selectedSubject.value = subjects.value[i]
+      editSubjectModalState.value = !editSubjectModalState.value
+    }
+
     return {
       openNewSubjectModal,
       subjects,
-      newSubjectModalState
+      newSubjectModalState,
+      openEditSubjectModal,
+      editSubjectModalState,
+      selectedSubject
     }
   }
 })
@@ -69,7 +76,7 @@ export default defineComponent({
 }
 
 .subject-item {
-  @apply flex items-center justify-center rounded-xl bg-white h-32 text-center;
+  @apply flex items-center justify-center rounded-xl h-32 text-center hover:border-blue-800 border-2 cursor-pointer border-white bg-white;
 }
 
 .subject-description {
@@ -77,7 +84,7 @@ export default defineComponent({
 }
 
 .add-subject {
-  @apply subject-item cursor-pointer border-2 border-white hover:border-blue-800;
+  @apply subject-item cursor-pointer border-2 border-white hover:border-blue-800 bg-white;
 }
 
 .subject-id {
@@ -93,7 +100,7 @@ export default defineComponent({
 }
 
 .page-wrapper {
-  @apply w-full bg-gray-100;
+  @apply w-full bg-gray-200;
   min-height: calc(100vh - 64px);
 }
 </style>

@@ -10,3 +10,7 @@
 // export const isColorLight = (input: string): boolean => {
 
 // }
+export const generateTimeSequence = (start: number, end: number, skips: number[]): number[] => {
+  const arrayLength = end - start
+  return Array.from<number, number>({ length: arrayLength }, (_, i) => i + start).filter(i => !skips.includes(i))
+}

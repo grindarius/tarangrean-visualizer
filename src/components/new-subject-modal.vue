@@ -61,6 +61,7 @@
 <script lang="ts">
 import { computed, ComputedRef, defineComponent, PropType, Ref, ref, watch } from 'vue'
 
+import { generateTimeSequence } from '@/helpers'
 import { DayInWeek, Pair, Subject, SubjectSchedule, TimeRange } from '@/types'
 
 export default defineComponent({
@@ -73,8 +74,7 @@ export default defineComponent({
     },
     subjects: {
       type: Array as PropType<Array<Subject>>,
-      required: true,
-      default: () => []
+      required: true
     }
   },
   emits: [
@@ -82,11 +82,6 @@ export default defineComponent({
     'update:subjects'
   ],
   setup (props, context) {
-    const generateTimeSequence = (start: number, end: number, skips: Array<number>): Array<number> => {
-      const arrayLength = end - start
-      return Array.from<number, number>({ length: arrayLength }, (_, i) => i + start).filter(i => !skips.includes(i))
-    }
-
     const localSubjects: Ref<Array<Subject>> = ref(props.subjects)
 
     const subjectId: Ref<string> = ref('')
@@ -146,7 +141,7 @@ export default defineComponent({
         errorMessage.value = validateInputs()
         setTimeout(() => {
           errorMessage.value = ''
-        }, 2000)
+        }, 1000)
         return
       } else {
         errorMessage.value = ''
@@ -157,6 +152,10 @@ export default defineComponent({
         name: subjectName.value,
         schedule: schedules.value
       }
+
+      subjectId.value = ''
+      subjectName.value = ''
+      schedules.value = []
 
       localSubjects.value.push(newSubject)
       context.emit('update:subjects', localSubjects.value)
@@ -235,15 +234,7 @@ export default defineComponent({
   @apply text-blue-500 bg-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150;
 }
 
-.subject-id-label {
-  @apply font-sans text-xl font-semibold;
-}
-
-.subject-name-label {
-  @apply font-sans text-xl font-semibold;
-}
-
-.subject-time-label {
+.subject-id-label, .subject-name-label, .subject-time-label {
   @apply font-sans text-xl font-semibold;
 }
 
@@ -253,10 +244,6 @@ export default defineComponent({
 
 .subject-name-input {
   @apply w-full ring-2 ring-blue-500 rounded-md h-9 p-2 focus:ring-blue-700 outline-none;
-}
-
-.day-list {
-  @apply inline-block text-center;
 }
 
 .day-dropdown, .start-time-dropdown, .end-time-dropdown {
