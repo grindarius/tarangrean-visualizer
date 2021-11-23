@@ -20,7 +20,7 @@
           <div class="color-selector-section">
             <input type="color" name="subject-color" class="subject-color-selector" v-model="subjectColor">
             <input type="text" name="subject-color-input" class="subject-color-input" placeholder="#ffffff" v-model="subjectColor">
-            <button class="random-color-button" @click="randomColor">
+            <button class="random-color-button" @click="randomizeColor">
               Random
             </button>
           </div>
@@ -71,7 +71,7 @@ import { nanoid } from 'nanoid'
 import tinycolor, { Instance } from 'tinycolor2'
 import { computed, ComputedRef, defineComponent, PropType, Ref, ref, watch } from 'vue'
 
-import { generateTimeSequence, randomHSVColor } from '@/helpers'
+import { generateTimeSequence, randomColor } from '@/helpers'
 import { DayInWeek, Pair, Subject, SubjectSchedule, TimeRange } from '@/types'
 
 export default defineComponent({
@@ -179,11 +179,10 @@ export default defineComponent({
       closeModal()
     }
 
-    const randomColor = (): void => {
-      const color: Instance = randomHSVColor()
+    const randomizeColor = (): void => {
+      const color: Instance = randomColor()
       const saturatedColor: Instance = color.saturate(10)
-
-      const mixedWithWhite: Instance = tinycolor.mix(saturatedColor, { h: 0, s: 0, v: 100 })
+      const mixedWithWhite: Instance = tinycolor.mix(saturatedColor, { r: 255, g: 255, b: 255 })
 
       subjectColor.value = mixedWithWhite.toHexString()
     }
@@ -222,7 +221,7 @@ export default defineComponent({
       errorMessage,
       addNewSubject,
       subjectColor,
-      randomColor,
+      randomizeColor,
       closeModal
     }
   }

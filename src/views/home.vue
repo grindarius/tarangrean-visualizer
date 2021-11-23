@@ -72,8 +72,8 @@ export default defineComponent({
 
     const fontColor = (index: number): { color: 'white' } | { color: 'black' } => {
       return isColorLight(tinycolor(subjects.value[index].color))
-        ? { color: 'white' }
-        : { color: 'black' }
+        ? { color: 'black' }
+        : { color: 'white' }
     }
 
     return {
@@ -97,7 +97,7 @@ export default defineComponent({
 }
 
 .subject-item {
-  @apply flex items-center justify-center rounded-xl h-32 text-center hover:border-blue-800 border-2 cursor-pointer border-transparent;
+  @apply flex items-center justify-center rounded-xl h-32 text-center hover:border-blue-800 border-2 cursor-pointer border-blue-50;
 }
 
 .subject-description {
