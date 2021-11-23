@@ -1,17 +1,4 @@
-// bool isColorLight(Color c) {
-//   int red = c.red;
-//   int green = c.green;
-//   int blue = c.blue;
-
 import tinycolor, { Instance } from 'tinycolor2'
-
-//   double brightness = ((red * 299) + (green * 587) + (blue * 114)) / 1000;
-//   return brightness > 125;
-// }
-
-// export const isColorLight = (input: string): boolean => {
-
-// }
 
 const getRandomInt = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min)) + min
@@ -30,4 +17,10 @@ export const randomHSVColor = (): Instance => {
   const color = tinycolor({ h, s, v })
 
   return color
+}
+
+export const isColorLight = (color: Instance): boolean => {
+  const brightness = color.getBrightness()
+
+  return brightness > 125
 }
