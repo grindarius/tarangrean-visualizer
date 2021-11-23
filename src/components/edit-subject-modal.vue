@@ -16,6 +16,14 @@
           <input type="text" name="subject-id" class="subject-id-input" placeholder="254459" v-model="localSubject.id">
           <label for="subject-name" class="subject-name-label">Subject name</label>
           <input type="text" name="subject-name" class="subject-name-input" placeholder="XBox Programming" v-model="localSubject.name">
+          <label for="subject-color" class="subject-color-label">Color</label>
+          <div class="color-selector-section">
+            <input type="color" name="subject-color" class="subject-color-selector" v-model="localSubject.color">
+            <input type="text" name="subject-color-input" class="subject-color-input" placeholder="#ffffff" v-model="localSubject.color">
+            <button class="random-color-button" @click="randomizePastelColor">
+              Random
+            </button>
+          </div>
           <label for="subject-time" class="subject-time-label">Time</label>
           <div class="datetime-controls">
             <div class="datetime-selector-section">
@@ -62,9 +70,10 @@
 </template>
 
 <script lang="ts">
+import tinycolor, { Instance } from 'tinycolor2'
 import { computed, ComputedRef, defineComponent, PropType, Ref, ref, toRefs, watch } from 'vue'
 
-import { generateTimeSequence } from '@/helpers'
+import { generateTimeSequence, randomColor } from '@/helpers'
 import { DayInWeek, Pair, Subject, TimeRange } from '@/types'
 
 export default defineComponent({
@@ -95,6 +104,7 @@ export default defineComponent({
     const selectedDate: Ref<DayInWeek> = ref('Monday')
     const selectedStartTime: Ref<TimeRange> = ref('8')
     const selectedEndTime: Ref<TimeRange> = ref('8')
+
     const errorMessage: Ref<string> = ref('')
 
     const startTimeDropdown: Ref<Array<Pair<TimeRange, string>>> = ref(generateTimeSequence(8, 20, [12]).map(time => {
@@ -133,6 +143,10 @@ export default defineComponent({
         return 'Error: No subject schedule defined.'
       }
 
+      if (!/#[0-9a-fA-F]{6}/.test(localSubject.value.color)) {
+        return 'Error: wrong color format.'
+      }
+
       if (new Set(localSubject.value.schedule.map(schedule => schedule.day + schedule.startTime + schedule.endTime)).size < localSubject.value.schedule.length) {
         return 'Error: There\'s a duplicate in schedule date and time.'
       }
@@ -164,6 +178,14 @@ export default defineComponent({
       }
     })
 
+    const randomizePastelColor = (): void => {
+      const randomedColor: Instance = randomColor()
+      const saturatedColor: Instance = randomedColor.saturate(10)
+      const mixedWithWhite: Instance = tinycolor.mix(saturatedColor, { r: 255, g: 255, b: 255 })
+
+      localSubject.value.color = mixedWithWhite.toHexString()
+    }
+
     return {
       startTimeDropdown,
       endTimeDropdown,
@@ -178,7 +200,8 @@ export default defineComponent({
       errorMessage,
       submitSubject,
       headerMessage,
-      removeSubject
+      removeSubject,
+      randomizePastelColor
     }
   }
 })
@@ -230,7 +253,7 @@ export default defineComponent({
   @apply text-blue-500 bg-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150;
 }
 
-.subject-id-label, .subject-name-label, .subject-time-label {
+.subject-id-label, .subject-name-label, .subject-time-label, .subject-color-label {
   @apply font-sans text-xl font-semibold;
 }
 
@@ -261,5 +284,17 @@ export default defineComponent({
 
 .error-message {
   @apply text-red-500 font-sans font-bold text-lg;
+}
+
+.subject-color-input {
+  @apply w-full ring-2 ring-blue-500 rounded-md h-9 p-2 focus:ring-blue-700 outline-none
+}
+
+.random-color-button {
+  @apply outline-none ring-blue-500 bg-blue-500 rounded-lg h-9 text-white font-sans;
+}
+
+.color-selector-section {
+  @apply grid gap-4 grid-cols-3;
 }
 </style>

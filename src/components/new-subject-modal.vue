@@ -20,7 +20,7 @@
           <div class="color-selector-section">
             <input type="color" name="subject-color" class="subject-color-selector" v-model="subjectColor">
             <input type="text" name="subject-color-input" class="subject-color-input" placeholder="#ffffff" v-model="subjectColor">
-            <button class="random-color-button" @click="randomizeColor">
+            <button class="random-color-button" @click="randomizePastelColor">
               Random
             </button>
           </div>
@@ -68,10 +68,10 @@
 
 <script lang="ts">
 import { nanoid } from 'nanoid'
-import tinycolor, { Instance } from 'tinycolor2'
 import { computed, ComputedRef, defineComponent, PropType, Ref, ref, watch } from 'vue'
 
-import { generateTimeSequence, randomColor } from '@/helpers'
+import { useSubjectColor } from '@/composables/subject-color'
+import { generateTimeSequence } from '@/helpers'
 import { DayInWeek, Pair, Subject, SubjectSchedule, TimeRange } from '@/types'
 
 export default defineComponent({
@@ -96,7 +96,7 @@ export default defineComponent({
 
     const subjectId: Ref<string> = ref('')
     const subjectName: Ref<string> = ref('')
-    const subjectColor: Ref<string> = ref('#ffffff')
+    const { color: subjectColor, randomizePastelColor } = useSubjectColor()
 
     const daysInWeek: Ref<Array<string>> = ref(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])
     const selectedDate: Ref<DayInWeek> = ref('Monday')
@@ -179,14 +179,6 @@ export default defineComponent({
       closeModal()
     }
 
-    const randomizeColor = (): void => {
-      const color: Instance = randomColor()
-      const saturatedColor: Instance = color.saturate(10)
-      const mixedWithWhite: Instance = tinycolor.mix(saturatedColor, { r: 255, g: 255, b: 255 })
-
-      subjectColor.value = mixedWithWhite.toHexString()
-    }
-
     const closeModal = (): void => {
       clearInputs()
       context.emit('update:newSubjectModalState', !props.newSubjectModalState)
@@ -221,7 +213,7 @@ export default defineComponent({
       errorMessage,
       addNewSubject,
       subjectColor,
-      randomizeColor,
+      randomizePastelColor,
       closeModal
     }
   }
