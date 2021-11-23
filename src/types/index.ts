@@ -8,8 +8,10 @@ export interface SubjectSchedule {
  * Interface of a subject or a lesson you want to put in to create the table.
  */
 export interface Subject {
+  readonly uid: string
   id: string
   name: string
+  color?: string
   schedule: SubjectSchedule[]
 }
 
