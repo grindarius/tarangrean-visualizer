@@ -59,6 +59,7 @@
 </template>
 
 <script lang="ts">
+import { nanoid } from 'nanoid'
 import { computed, ComputedRef, defineComponent, PropType, Ref, ref, watch } from 'vue'
 
 import { generateTimeSequence } from '@/helpers'
@@ -148,6 +149,7 @@ export default defineComponent({
       }
 
       const newSubject: Subject = {
+        uid: nanoid(),
         id: subjectId.value,
         name: subjectName.value,
         schedule: schedules.value

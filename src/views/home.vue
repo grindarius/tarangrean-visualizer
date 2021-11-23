@@ -3,7 +3,11 @@
     <div class="container mx-auto p-3">
       <h1 class="text-3xl text-black font-sans mb-3">Subjects</h1>
       <div class="subject-list">
-        <div class="subject-item" v-for="(_, i) in subjects" :key="`subject-${i}`" @click="openEditSubjectModal(i)">
+        <div
+          class="subject-item"
+          v-for="(_, i) in subjects"
+          :key="`subject-${i}`"
+          @click="openEditSubjectModal(i)">
           <div class="subject-description">
             <h1 class="subject-id">{{ _.id }}</h1>
             <h1 class="subject-name">{{ _.name }}</h1>
@@ -22,7 +26,8 @@
     </new-subject-modal>
     <edit-subject-modal
       v-model:edit-subject-modal-state="editSubjectModalState"
-      v-model:subject="selectedSubject">
+      v-model:subject="selectedSubject"
+      @remove-subject="removeSubject">
     </edit-subject-modal>
     </div>
   </div>
@@ -57,13 +62,19 @@ export default defineComponent({
       editSubjectModalState.value = !editSubjectModalState.value
     }
 
+    const removeSubject = (uid: string): void => {
+      const index = subjects.value.findIndex((value) => value.uid === uid)
+      subjects.value.splice(index, 1)
+    }
+
     return {
       openNewSubjectModal,
       subjects,
       newSubjectModalState,
       openEditSubjectModal,
       editSubjectModalState,
-      selectedSubject
+      selectedSubject,
+      removeSubject
     }
   }
 })

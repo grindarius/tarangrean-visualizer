@@ -6,7 +6,7 @@
         <!-- header -->
         <div class="modal-title">
           <h1>{{ headerMessage }}</h1>
-          <button class="modal-close-button" @click="$emit('update:editSubjectModalState', !editSubjectModalState)">
+          <button class="modal-close-button-icon" @click="$emit('update:editSubjectModalState', !editSubjectModalState)">
             <mdicon class="close-modal-icon" name="close-circle-outline" />
           </button>
         </div>
@@ -44,11 +44,14 @@
             {{ errorMessage }}
           </h1>
           <div>
-            <button class="modal-close-button-footer" type="button" @click="$emit('update:editSubjectModalState', !editSubjectModalState)">
+            <button class="modal-close-button" type="button" @click="$emit('update:editSubjectModalState', !editSubjectModalState)">
               Close
             </button>
+            <button class="modal-close-button" type="button" @click="removeSubject">
+              Remove
+            </button>
             <button class="modal-accept-button" type="button" @click="submitSubject">
-              Submit
+              Submit changes
             </button>
           </div>
         </div>
@@ -78,7 +81,8 @@ export default defineComponent({
     }
   },
   emits: [
-    'update:editSubjectModalState'
+    'update:editSubjectModalState',
+    'removeSubject'
   ],
   setup (props, context) {
     const { subject: localSubject } = toRefs(props)
@@ -135,6 +139,11 @@ export default defineComponent({
       return ''
     }
 
+    const removeSubject = (): void => {
+      context.emit('update:editSubjectModalState', !props.editSubjectModalState)
+      context.emit('removeSubject', localSubject.value.uid)
+    }
+
     const submitSubject = (): void => {
       if (validateInputs() !== '') {
         errorMessage.value = validateInputs()
@@ -168,7 +177,8 @@ export default defineComponent({
       validateInputs,
       errorMessage,
       submitSubject,
-      headerMessage
+      headerMessage,
+      removeSubject
     }
   }
 })
@@ -199,7 +209,7 @@ export default defineComponent({
   }
 }
 
-.modal-close-button {
+.modal-close-button-icon {
   @apply p-1 ml-auto border-0 text-black float-right text-3xl leading-none font-semibold outline-none focus:outline-none;
 }
 
@@ -212,7 +222,7 @@ export default defineComponent({
   @apply flex items-center justify-between p-6 border-t border-solid border-gray-200 rounded-b;
 }
 
-.modal-close-button-footer {
+.modal-close-button, .modal-remove-button {
   @apply text-red-500 bg-transparent border border-solid border-red-500 hover:bg-red-500 hover:text-white font-bold uppercase text-sm px-6 py-3 rounded outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150;
 }
 
