@@ -10,6 +10,9 @@ import Router from './router'
 
 import './globals.scss'
 
-createApp(App).use(Router).use(mdivue, {
-  icons: mdijs as unknown as Record<string, string>
-}).mount('#app')
+createApp(App)
+  .use(Router)
+  .use(mdivue, {
+    icons: mdijs as unknown as Record<string, string>
+  })
+  .mount('#app')
