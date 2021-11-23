@@ -141,6 +141,10 @@ export default defineComponent({
         return 'Error: No subject schedule defined.'
       }
 
+      if (!/#[0-9a-fA-F]{6}/.test(subjectColor.value)) {
+        return 'Error: wrong color format.'
+      }
+
       if (new Set(subjectSchedules.value.map(schedule => schedule.day + schedule.startTime + schedule.endTime)).size < subjectSchedules.value.length) {
         return 'Error: There\'s a duplicate in schedule date and time.'
       }
@@ -162,6 +166,7 @@ export default defineComponent({
         uid: nanoid(),
         id: subjectId.value,
         name: subjectName.value,
+        color: subjectColor.value,
         schedule: subjectSchedules.value
       }
 
