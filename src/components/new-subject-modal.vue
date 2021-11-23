@@ -6,7 +6,7 @@
         <!-- header -->
         <div class="modal-title">
           <h1>Create new subject</h1>
-          <button class="modal-close-button" @click="$emit('update:newSubjectModalState', !newSubjectModalState)">
+          <button class="modal-close-button" @click="closeModal">
             <mdicon class="close-modal-icon" name="close-circle-outline" />
           </button>
         </div>
@@ -16,6 +16,14 @@
           <input type="text" name="subject-id" class="subject-id-input" placeholder="254459" v-model="subjectId">
           <label for="subject-name" class="subject-name-label">Subject name</label>
           <input type="text" name="subject-name" class="subject-name-input" placeholder="XBox Programming" v-model="subjectName">
+          <label for="subject-color" class="subject-color-label">Color</label>
+          <div class="color-selector-section">
+            <input type="color" name="subject-color" class="subject-color-selector" v-model="subjectColor">
+            <input type="text" name="subject-color-input" class="subject-color-input" placeholder="#ffffff" v-model="subjectColor">
+            <button class="random-color-button" @click="randomColor">
+              Random
+            </button>
+          </div>
           <label for="subject-time" class="subject-time-label">Time</label>
           <div class="datetime-controls">
             <div class="datetime-selector-section">
@@ -30,7 +38,7 @@
               </select>
               <mdicon class="add-new-subject-schedule" name="plus-circle-outline" @click="addNewSchedule" />
             </div>
-            <div v-for="(schedule, i) in schedules" :key="i" class="selected-datetimes">
+            <div v-for="(schedule, i) in subjectSchedules" :key="i" class="selected-datetimes">
               <h1 class="font-sans text-md">
                 {{ schedule.day }}, {{ `${schedule.startTime.padStart(2, '0')}:00` }} to {{ `${schedule.endTime.padStart(2, '0')}:50` }}
               </h1>
@@ -44,7 +52,7 @@
             {{ errorMessage }}
           </h1>
           <div>
-            <button class="modal-close-button-footer" type="button" @click="$emit('update:newSubjectModalState', !newSubjectModalState)">
+            <button class="modal-close-button-footer" type="button" @click="closeModal">
               Close
             </button>
             <button class="modal-accept-button" type="button" @click="addNewSubject">
@@ -60,9 +68,10 @@
 
 <script lang="ts">
 import { nanoid } from 'nanoid'
+import tinycolor, { Instance } from 'tinycolor2'
 import { computed, ComputedRef, defineComponent, PropType, Ref, ref, watch } from 'vue'
 
-import { generateTimeSequence } from '@/helpers'
+import { generateTimeSequence, randomHSVColor } from '@/helpers'
 import { DayInWeek, Pair, Subject, SubjectSchedule, TimeRange } from '@/types'
 
 export default defineComponent({
@@ -87,12 +96,13 @@ export default defineComponent({
 
     const subjectId: Ref<string> = ref('')
     const subjectName: Ref<string> = ref('')
+    const subjectColor: Ref<string> = ref('#ffffff')
 
     const daysInWeek: Ref<Array<string>> = ref(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])
     const selectedDate: Ref<DayInWeek> = ref('Monday')
     const selectedStartTime: Ref<TimeRange> = ref('8')
     const selectedEndTime: Ref<TimeRange> = ref('8')
-    const schedules: Ref<Array<SubjectSchedule>> = ref([])
+    const subjectSchedules: Ref<Array<SubjectSchedule>> = ref([])
     const errorMessage: Ref<string> = ref('')
 
     const startTimeDropdown: Ref<Array<Pair<TimeRange, string>>> = ref(generateTimeSequence(8, 20, [12]).map(time => {
@@ -111,7 +121,7 @@ export default defineComponent({
     })
 
     const addNewSchedule = (): void => {
-      schedules.value.push({
+      subjectSchedules.value.push({
         day: selectedDate.value,
         startTime: selectedStartTime.value,
         endTime: selectedEndTime.value
@@ -119,7 +129,7 @@ export default defineComponent({
     }
 
     const deleteSchedule = (index: number): void => {
-      schedules.value.splice(index, 1)
+      subjectSchedules.value.splice(index, 1)
     }
 
     const validateInputs = (): string => {
@@ -127,11 +137,11 @@ export default defineComponent({
         return 'Error: No subject id.'
       }
 
-      if (schedules.value.length <= 0) {
+      if (subjectSchedules.value.length <= 0) {
         return 'Error: No subject schedule defined.'
       }
 
-      if (new Set(schedules.value.map(schedule => schedule.day + schedule.startTime + schedule.endTime)).size < schedules.value.length) {
+      if (new Set(subjectSchedules.value.map(schedule => schedule.day + schedule.startTime + schedule.endTime)).size < subjectSchedules.value.length) {
         return 'Error: There\'s a duplicate in schedule date and time.'
       }
       return ''
@@ -152,16 +162,37 @@ export default defineComponent({
         uid: nanoid(),
         id: subjectId.value,
         name: subjectName.value,
-        schedule: schedules.value
+        schedule: subjectSchedules.value
       }
 
       subjectId.value = ''
       subjectName.value = ''
-      schedules.value = []
+      subjectSchedules.value = []
 
       localSubjects.value.push(newSubject)
       context.emit('update:subjects', localSubjects.value)
+      closeModal()
+    }
+
+    const randomColor = (): void => {
+      const color: Instance = randomHSVColor()
+      const saturatedColor: Instance = color.saturate(10)
+
+      const mixedWithWhite: Instance = tinycolor.mix(saturatedColor, { h: 0, s: 0, v: 100 })
+
+      subjectColor.value = mixedWithWhite.toHexString()
+    }
+
+    const closeModal = (): void => {
+      clearInputs()
       context.emit('update:newSubjectModalState', !props.newSubjectModalState)
+    }
+
+    const clearInputs = (): void => {
+      subjectId.value = ''
+      subjectName.value = ''
+      subjectColor.value = '#ffffff'
+      subjectSchedules.value = []
     }
 
     watch(selectedStartTime, (value) => {
@@ -177,14 +208,17 @@ export default defineComponent({
       selectedStartTime,
       selectedEndTime,
       daysInWeek,
-      schedules,
+      subjectSchedules,
       addNewSchedule,
       deleteSchedule,
       subjectId,
       subjectName,
       validateInputs,
       errorMessage,
-      addNewSubject
+      addNewSubject,
+      subjectColor,
+      randomColor,
+      closeModal
     }
   }
 })
@@ -236,7 +270,7 @@ export default defineComponent({
   @apply text-blue-500 bg-transparent font-bold uppercase px-6 py-2 text-sm outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150;
 }
 
-.subject-id-label, .subject-name-label, .subject-time-label {
+.subject-id-label, .subject-name-label, .subject-time-label, .subject-color-label {
   @apply font-sans text-xl font-semibold;
 }
 
@@ -267,5 +301,17 @@ export default defineComponent({
 
 .error-message {
   @apply text-red-500 font-sans font-bold text-lg;
+}
+
+.color-selector-section {
+  @apply grid gap-4 grid-cols-3;
+}
+
+.random-color-button {
+  @apply outline-none ring-blue-500 bg-blue-500 rounded-lg h-9 text-white font-sans;
+}
+
+.subject-color-input {
+  @apply w-full ring-2 ring-blue-500 rounded-md h-9 p-2 focus:ring-blue-700 outline-none
 }
 </style>

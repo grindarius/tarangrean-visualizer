@@ -12,12 +12,14 @@
     "mdi-vue": "^3.0.11",
     "nanoid": "^3.1.30",
     "postcss-import": "^14.0.2",
+    "tinycolor2": "^1.4.2",
     "vue": "^3.0.11",
     "vue-i18n": "^8.26.7",
     "vue-router": "^4.0.11"
   },
   "devDependencies": {
     "@types/node": "^16.11.7",
+    "@types/tinycolor2": "^1.4.3",
     "@typescript-eslint/eslint-plugin": "^4.29.3",
     "@typescript-eslint/parser": "^4.29.3",
     "@vitejs/plugin-vue": "^1.9.4",
