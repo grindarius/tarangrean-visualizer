@@ -11,7 +11,7 @@ export interface Subject {
   readonly uid: string
   id: string
   name: string
-  color?: string
+  color: string
   schedule: SubjectSchedule[]
 }
 

@@ -5,12 +5,13 @@
       <div class="subject-list">
         <div
           class="subject-item"
-          v-for="(_, i) in subjects"
+          v-for="(subject, i) in subjects"
           :key="`subject-${i}`"
+          :style="{ backgroundColor: subject.color }"
           @click="openEditSubjectModal(i)">
-          <div class="subject-description">
-            <h1 class="subject-id">{{ _.id }}</h1>
-            <h1 class="subject-name">{{ _.name }}</h1>
+          <div class="subject-description" :style="{ backgroundColor: subject.color }">
+            <h1 class="subject-id" :style="fontColor(i)">{{ subject.id }}</h1>
+            <h1 class="subject-name" :style="fontColor(i)">{{ subject.name }}</h1>
           </div>
         </div>
         <div class="add-subject" @click="openNewSubjectModal">
@@ -34,10 +35,12 @@
 </template>
 
 <script lang="ts">
+import tinycolor from 'tinycolor2'
 import { defineComponent, Ref, ref } from 'vue'
 
 import EditSubjectModal from '@/components/edit-subject-modal.vue'
 import NewSubjectModal from '@/components/new-subject-modal.vue'
+import { isColorLight } from '@/helpers'
 import { Subject } from '@/types'
 
 export default defineComponent({
@@ -67,6 +70,12 @@ export default defineComponent({
       subjects.value.splice(index, 1)
     }
 
+    const fontColor = (index: number): { color: 'white' } | { color: 'black' } => {
+      return isColorLight(tinycolor(subjects.value[index].color))
+        ? { color: 'white' }
+        : { color: 'black' }
+    }
+
     return {
       openNewSubjectModal,
       subjects,
@@ -74,7 +83,8 @@ export default defineComponent({
       openEditSubjectModal,
       editSubjectModalState,
       selectedSubject,
-      removeSubject
+      removeSubject,
+      fontColor
     }
   }
 })
@@ -87,7 +97,7 @@ export default defineComponent({
 }
 
 .subject-item {
-  @apply flex items-center justify-center rounded-xl h-32 text-center hover:border-blue-800 border-2 cursor-pointer border-white bg-white;
+  @apply flex items-center justify-center rounded-xl h-32 text-center hover:border-blue-800 border-2 cursor-pointer border-transparent;
 }
 
 .subject-description {
@@ -99,11 +109,11 @@ export default defineComponent({
 }
 
 .subject-id {
-  @apply text-xl font-sans font-bold text-current;
+  @apply text-xl font-sans font-bold;
 }
 
 .subject-name {
-  @apply text-lg font-sans font-normal text-current;
+  @apply text-lg font-sans font-normal;
 }
 
 .modal {
