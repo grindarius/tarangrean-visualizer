@@ -8,7 +8,7 @@ interface UseSubjectColor {
   randomizePastelColor: () => void
 }
 
-export function useSubjectColor (): UseSubjectColor {
+export const useSubjectColor = (): UseSubjectColor => {
   const color = ref('#ffffff')
 
   const randomizePastelColor = (): void => {

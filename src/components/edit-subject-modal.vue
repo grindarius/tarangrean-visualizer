@@ -27,20 +27,14 @@
           <label for="subject-time" class="subject-time-label">Time</label>
           <div class="datetime-controls">
             <div class="datetime-selector-section">
-              <select name="day-dropdown" class="day-dropdown" v-model="selectedDate">
-                <option v-for="(day, i) in daysInWeek" :key="i" :value="day">{{ day }}</option>
-              </select>
-              <select name="start-time-dropdown" class="start-time-dropdown" v-model="selectedStartTime">
-                <option v-for="(time, i) in startTimeDropdown" :key="i" :value="time.key">{{ time.value }}</option>
-              </select>
-              <select name="end-time-dropdown" class="end-time-dropdown" v-model="selectedEndTime">
-                <option v-for="(time, i) in endTimeDropdown" :key="i" :value="time.key">{{ time.value }}</option>
-              </select>
+              <day-dropdown v-model:selectedDate="selectedDate"></day-dropdown>
+              <time-dropdown v-model:selectedTime="selectedStartTime" :timeArray="startTimeDropdown"></time-dropdown>
+              <time-dropdown v-model:selectedTime="selectedEndTime" :timeArray="endTimeDropdown"></time-dropdown>
               <mdicon class="add-new-subject-schedule" name="plus-circle-outline" @click="addNewSchedule" />
             </div>
             <div v-for="(schedule, i) in localSubject.schedule" :key="i" class="selected-datetimes">
               <h1 class="font-sans text-md">
-                {{ schedule.day }}, {{ `${schedule.startTime.padStart(2, '0')}:00` }} to {{ `${schedule.endTime.padStart(2, '0')}:50` }}
+                {{ timeScheduleString(schedule) }}
               </h1>
               <mdicon name="minus-circle-outline" @click="deleteSchedule(i)" />
             </div>
@@ -70,14 +64,22 @@
 </template>
 
 <script lang="ts">
+import cloneDeep from 'lodash/cloneDeep'
 import tinycolor, { Instance } from 'tinycolor2'
-import { computed, ComputedRef, defineComponent, PropType, Ref, ref, toRefs, watch } from 'vue'
+import { computed, ComputedRef, defineComponent, PropType, Ref, ref, watch } from 'vue'
 
-import { generateTimeSequence, randomColor } from '@/helpers'
-import { DayInWeek, Pair, Subject, TimeRange } from '@/types'
+import DayDropdown from '@/components/day-dropdown.vue'
+import TimeDropdown from '@/components/time-dropdown.vue'
+import { useError } from '@/composables'
+import { createTimeScheduleString, generateTimeSequence, randomColor } from '@/helpers'
+import { DayInWeek, Subject, SubjectSchedule, Time } from '@/types'
 
 export default defineComponent({
   name: 'edit-subject-modal',
+  components: {
+    'day-dropdown': DayDropdown,
+    'time-dropdown': TimeDropdown
+  },
   props: {
     editSubjectModalState: {
       type: Boolean,
@@ -91,36 +93,49 @@ export default defineComponent({
   },
   emits: [
     'update:editSubjectModalState',
+    'update:subject',
     'removeSubject'
   ],
   setup (props, context) {
-    const { subject: localSubject } = toRefs(props)
+    const localSubject = ref(cloneDeep(props.subject))
 
     const headerMessage = computed(() => {
       return localSubject.value.id || 'Edit Subject'
     })
 
-    const daysInWeek: Ref<Array<string>> = ref(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])
     const selectedDate: Ref<DayInWeek> = ref('Monday')
-    const selectedStartTime: Ref<TimeRange> = ref('8')
-    const selectedEndTime: Ref<TimeRange> = ref('8')
-
-    const errorMessage: Ref<string> = ref('')
-
-    const startTimeDropdown: Ref<Array<Pair<TimeRange, string>>> = ref(generateTimeSequence(8, 20, [12]).map(time => {
-      return {
-        key: time.toString() as TimeRange,
-        value: `${time.toString().padStart(2, '0')}:00`
-      }
-    }))
-    const endTimeDropdown: ComputedRef<Array<Pair<TimeRange, string>>> = computed(() => {
-      return startTimeDropdown.value.map(time => {
-        return {
-          key: time.key,
-          value: `${time.key.padStart(2, '0')}:50`
-        }
-      }).filter(time => Number(time.key) >= Number(selectedStartTime.value))
+    const selectedStartTime: Ref<Time> = ref({
+      hour: 8,
+      minute: 0
     })
+    const selectedEndTime: Ref<Time> = ref({
+      hour: 8,
+      minute: 50
+    })
+
+    const { errorMessage, createError } = useError()
+
+    const startTimeDropdown: Ref<Array<Time>> = ref(generateTimeSequence(
+      { hour: 8, minute: 0 },
+      { hour: 20, minute: 0 },
+      [{ hour: 12, minute: 0 }]
+    ))
+    const endTimeDropdown: ComputedRef<Array<Time>> = computed(() => {
+      const mappedTimeDropdown = startTimeDropdown.value.map(time => {
+        return {
+          hour: time.hour,
+          minute: 50
+        }
+      })
+
+      return selectedStartTime.value == null
+        ? mappedTimeDropdown
+        : mappedTimeDropdown.filter(time => selectedStartTime.value != null && time.hour >= selectedStartTime.value.hour)
+    })
+
+    const timeScheduleString = (schedule: SubjectSchedule): string => {
+      return createTimeScheduleString(schedule.day, schedule.startTime, schedule.endTime)
+    }
 
     const addNewSchedule = (): void => {
       localSubject.value.schedule.push({
@@ -147,7 +162,9 @@ export default defineComponent({
         return 'Error: wrong color format.'
       }
 
-      if (new Set(localSubject.value.schedule.map(schedule => schedule.day + schedule.startTime + schedule.endTime)).size < localSubject.value.schedule.length) {
+      if (new Set(localSubject.value.schedule.map(schedule => {
+        return schedule.day + schedule.startTime.hour + schedule.startTime.minute + schedule.endTime.hour + schedule.endTime.minute
+      })).size < localSubject.value.schedule.length) {
         return 'Error: There\'s a duplicate in schedule date and time.'
       }
       return ''
@@ -160,23 +177,15 @@ export default defineComponent({
 
     const submitSubject = (): void => {
       if (validateInputs() !== '') {
-        errorMessage.value = validateInputs()
-        setTimeout(() => {
-          errorMessage.value = ''
-        }, 1000)
+        createError(validateInputs())
         return
       } else {
         errorMessage.value = ''
       }
 
+      context.emit('update:subject', localSubject.value)
       context.emit('update:editSubjectModalState', !props.editSubjectModalState)
     }
-
-    watch(selectedStartTime, (value) => {
-      if (Number(value) > Number(selectedEndTime.value)) {
-        selectedEndTime.value = selectedStartTime.value
-      }
-    })
 
     const randomizePastelColor = (): void => {
       const randomedColor: Instance = randomColor()
@@ -186,13 +195,16 @@ export default defineComponent({
       localSubject.value.color = mixedWithWhite.toHexString()
     }
 
+    watch(() => props.subject, (value) => {
+      localSubject.value = value
+    }, { deep: true })
+
     return {
       startTimeDropdown,
       endTimeDropdown,
       selectedDate,
       selectedStartTime,
       selectedEndTime,
-      daysInWeek,
       addNewSchedule,
       deleteSchedule,
       localSubject,
@@ -201,6 +213,7 @@ export default defineComponent({
       submitSubject,
       headerMessage,
       removeSubject,
+      timeScheduleString,
       randomizePastelColor
     }
   }
@@ -238,7 +251,7 @@ export default defineComponent({
 
 .modal-body {
   @apply relative px-5 py-3 grid gap-4;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 400px));
+  grid-template-columns: 0.5fr 1fr;
 }
 
 .modal-footer {

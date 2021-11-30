@@ -1,5 +1,5 @@
 <template>
-  <div class="modal-background cursor-pointer" v-if="newSubjectModalState">
+  <div class="modal-background" v-if="newSubjectModalState">
     <div class="modal">
       <!-- content -->
       <div class="modal-content">
@@ -27,20 +27,14 @@
           <label for="subject-time" class="subject-time-label">Time</label>
           <div class="datetime-controls">
             <div class="datetime-selector-section">
-              <select name="day-dropdown" class="day-dropdown" v-model="selectedDate">
-                <option v-for="(day, i) in daysInWeek" :key="i" :value="day">{{ day }}</option>
-              </select>
-              <select name="start-time-dropdown" class="start-time-dropdown" v-model="selectedStartTime">
-                <option v-for="(time, i) in startTimeDropdown" :key="i" :value="time.key">{{ time.value }}</option>
-              </select>
-              <select name="end-time-dropdown" class="end-time-dropdown" v-model="selectedEndTime">
-                <option v-for="(time, i) in endTimeDropdown" :key="i" :value="time.key">{{ time.value }}</option>
-              </select>
+              <day-dropdown v-model:selectedDate="selectedDate">Day</day-dropdown>
+              <time-dropdown v-model:selectedTime="selectedStartTime" :timeArray="startTimeDropdown">Start time</time-dropdown>
+              <time-dropdown v-model:selectedTime="selectedEndTime" :timeArray="endTimeDropdown">End time</time-dropdown>
               <mdicon class="add-new-subject-schedule" name="plus-circle-outline" @click="addNewSchedule" />
             </div>
             <div v-for="(schedule, i) in subjectSchedules" :key="i" class="selected-datetimes">
               <h1 class="font-sans text-md">
-                {{ schedule.day }}, {{ `${schedule.startTime.padStart(2, '0')}:00` }} to {{ `${schedule.endTime.padStart(2, '0')}:50` }}
+                {{ generateTimeScheduleString(schedule) }}
               </h1>
               <mdicon name="minus-circle-outline" @click="deleteSchedule(i)" />
             </div>
@@ -68,14 +62,21 @@
 
 <script lang="ts">
 import { nanoid } from 'nanoid'
-import { computed, ComputedRef, defineComponent, PropType, Ref, ref, watch } from 'vue'
+import { computed, ComputedRef, defineComponent, PropType, Ref, ref } from 'vue'
 
-import { useSubjectColor } from '@/composables/subject-color'
-import { generateTimeSequence } from '@/helpers'
-import { DayInWeek, Pair, Subject, SubjectSchedule, TimeRange } from '@/types'
+import DayDropdown from '@/components/day-dropdown.vue'
+import TimeDropdown from '@/components/time-dropdown.vue'
+import { useError, useSubjectColor } from '@/composables'
+import { daysInWeek } from '@/constants'
+import { createTimeRangeString, generateTimeSequence, isMoreThan } from '@/helpers'
+import { DayInWeek, Subject, SubjectSchedule, Time } from '@/types'
 
 export default defineComponent({
   name: 'new-subject-modal',
+  components: {
+    'day-dropdown': DayDropdown,
+    'time-dropdown': TimeDropdown
+  },
   props: {
     newSubjectModalState: {
       type: Boolean,
@@ -98,29 +99,63 @@ export default defineComponent({
     const subjectName: Ref<string> = ref('')
     const { color: subjectColor, randomizePastelColor } = useSubjectColor()
 
-    const daysInWeek: Ref<Array<string>> = ref(['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'])
-    const selectedDate: Ref<DayInWeek> = ref('Monday')
-    const selectedStartTime: Ref<TimeRange> = ref('8')
-    const selectedEndTime: Ref<TimeRange> = ref('8')
+    const selectedDate: Ref<DayInWeek | undefined> = ref('Monday')
+    const selectedStartTime: Ref<Time | undefined> = ref({
+      hour: 8,
+      minute: 0
+    })
+    const selectedEndTime: Ref<Time | undefined> = ref({
+      hour: 8,
+      minute: 50
+    })
     const subjectSchedules: Ref<Array<SubjectSchedule>> = ref([])
-    const errorMessage: Ref<string> = ref('')
 
-    const startTimeDropdown: Ref<Array<Pair<TimeRange, string>>> = ref(generateTimeSequence(8, 20, [12]).map(time => {
-      return {
-        key: time.toString() as TimeRange,
-        value: `${time.toString().padStart(2, '0')}:00`
-      }
-    }))
-    const endTimeDropdown: ComputedRef<Array<Pair<TimeRange, string>>> = computed(() => {
-      return startTimeDropdown.value.map(time => {
+    const { errorMessage, createError } = useError()
+
+    const startTimeDropdown: Ref<Array<Time>> = ref(generateTimeSequence(
+      { hour: 8, minute: 0 },
+      { hour: 20, minute: 0 },
+      [{ hour: 12, minute: 0 }]
+    ))
+
+    const endTimeDropdown: ComputedRef<Array<Time>> = computed(() => {
+      const mappedTimeDropdown = startTimeDropdown.value.map(time => {
         return {
-          key: time.key,
-          value: `${time.key.padStart(2, '0')}:50`
+          hour: time.hour,
+          minute: 50
         }
-      }).filter(time => Number(time.key) >= Number(selectedStartTime.value))
+      })
+
+      return selectedStartTime.value == null
+        ? mappedTimeDropdown
+        : mappedTimeDropdown.filter(time => selectedStartTime.value != null && time.hour >= selectedStartTime.value.hour)
     })
 
+    const generateTimeScheduleString = (schedule: SubjectSchedule): string => {
+      return `${schedule.day}, ${createTimeRangeString(schedule.startTime ?? { hour: 0, minute: 0 }, schedule.endTime ?? { hour: 0, minute: 0 })}`
+    }
+
     const addNewSchedule = (): void => {
+      if (selectedDate.value == null) {
+        createError('Error: Schedule\'s day is not selected.')
+        return
+      }
+
+      if (selectedStartTime.value == null) {
+        createError('Error: Schedules\'s start time is not selected.')
+        return
+      }
+
+      if (selectedEndTime.value == null) {
+        createError('Error: Schedules\'s end time is not selected.')
+        return
+      }
+
+      if (isMoreThan(selectedStartTime.value, selectedEndTime.value)) {
+        createError('Error: End time is less than start time.')
+        return
+      }
+
       subjectSchedules.value.push({
         day: selectedDate.value,
         startTime: selectedStartTime.value,
@@ -145,7 +180,9 @@ export default defineComponent({
         return 'Error: wrong color format.'
       }
 
-      if (new Set(subjectSchedules.value.map(schedule => schedule.day + schedule.startTime + schedule.endTime)).size < subjectSchedules.value.length) {
+      if (new Set(subjectSchedules.value.map(schedule => {
+        return schedule.day + schedule.startTime.hour + schedule.startTime.minute + schedule.endTime.hour + schedule.endTime.minute
+      })).size < subjectSchedules.value.length) {
         return 'Error: There\'s a duplicate in schedule date and time.'
       }
       return ''
@@ -153,10 +190,7 @@ export default defineComponent({
 
     const addNewSubject = (): void => {
       if (validateInputs() !== '') {
-        errorMessage.value = validateInputs()
-        setTimeout(() => {
-          errorMessage.value = ''
-        }, 1000)
+        createError(validateInputs())
         return
       } else {
         errorMessage.value = ''
@@ -191,12 +225,6 @@ export default defineComponent({
       subjectSchedules.value = []
     }
 
-    watch(selectedStartTime, (value) => {
-      if (Number(value) > Number(selectedEndTime.value)) {
-        selectedEndTime.value = selectedStartTime.value
-      }
-    })
-
     return {
       startTimeDropdown,
       endTimeDropdown,
@@ -214,6 +242,7 @@ export default defineComponent({
       addNewSubject,
       subjectColor,
       randomizePastelColor,
+      generateTimeScheduleString,
       closeModal
     }
   }
@@ -251,7 +280,7 @@ export default defineComponent({
 
 .modal-body {
   @apply relative px-5 py-3 grid gap-4;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 400px));
+  grid-template-columns: 0.5fr 1fr;
 }
 
 .modal-footer {
@@ -276,10 +305,6 @@ export default defineComponent({
 
 .subject-name-input {
   @apply w-full ring-2 ring-blue-500 rounded-md h-9 p-2 focus:ring-blue-700 outline-none;
-}
-
-.day-dropdown, .start-time-dropdown, .end-time-dropdown {
-  @apply w-full outline-none border-2 border-blue-500 rounded-md h-9 focus:border-blue-700 cursor-pointer;
 }
 
 .datetime-selector-section {

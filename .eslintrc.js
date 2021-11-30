@@ -30,11 +30,7 @@ module.exports = {
     ],
     'simple-import-sort/exports': ['error'],
     'unused-imports/no-unused-imports': 'error',
-    'import/newline-after-import': ['error', { count: 1 }],
-    '@typescript-eslint/array-type': ['error', {
-      default: 'generic',
-      readonly: 'generic'
-    }]
+    'import/newline-after-import': ['error', { count: 1 }]
   },
   overrides: [
     {
@@ -64,7 +60,11 @@ module.exports = {
       rules: {
         'no-redeclare': 'off',
         'no-undef': 'off',
-        'no-useless-constructor': 'off'
+        'no-useless-constructor': 'off',
+        '@typescript-eslint/array-type': ['error', {
+          default: 'generic',
+          readonly: 'generic'
+        }]
       }
     },
     {
@@ -73,7 +73,13 @@ module.exports = {
         'plugin:vue/vue3-essential',
         '@vue/standard',
         '@vue/typescript/recommended'
-      ]
+      ],
+      rules: {
+        '@typescript-eslint/array-type': ['error', {
+          default: 'generic',
+          readonly: 'generic'
+        }]
+      }
     }
   ]
 }

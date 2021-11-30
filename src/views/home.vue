@@ -11,25 +11,42 @@
           @click="openEditSubjectModal(i)">
           <div class="subject-description" :style="{ backgroundColor: subject.color }">
             <h1 class="subject-id" :style="fontColor(i)">{{ subject.id }}</h1>
-            <h1 class="subject-name" :style="fontColor(i)">{{ subject.name }}</h1>
+            <p class="subject-name" :style="fontColor(i)">{{ subject.name }}</p>
           </div>
         </div>
         <div class="add-subject" @click="openNewSubjectModal">
           <div class="subject-description">
             <mdicon name="plus-circle-outline" :width="30" :height="30" />
-            <h1 class="subject-name">New Subject</h1>
+            <h1 class="subject-id">New Subject</h1>
           </div>
         </div>
       </div>
-    <new-subject-modal
-      v-model:new-subject-modal-state="newSubjectModalState"
-      v-model:subjects="subjects">
-    </new-subject-modal>
-    <edit-subject-modal
-      v-model:edit-subject-modal-state="editSubjectModalState"
-      v-model:subject="selectedSubject"
-      @remove-subject="removeSubject">
-    </edit-subject-modal>
+      <!-- <h1 class="text-3xl text-black font-sans my-3">Table</h1>
+      <div class="subject-table-section">
+        <table class="subject-table">
+          <thead>
+            <tr>
+              <td v-for="(column, i) in tableTopRow" :key="`top-row-${i}`">
+                {{ column }}
+              </td>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(day, i) in tableBody" :key="`header-${i}`">
+              <td>{{ i }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div> -->
+      <new-subject-modal
+        v-model:new-subject-modal-state="newSubjectModalState"
+        v-model:subjects="subjects">
+      </new-subject-modal>
+      <edit-subject-modal
+        v-model:edit-subject-modal-state="editSubjectModalState"
+        v-model:subject="selectedSubject"
+        @remove-subject="removeSubject">
+      </edit-subject-modal>
     </div>
   </div>
 </template>
@@ -55,6 +72,9 @@ export default defineComponent({
 
     const newSubjectModalState = ref(false)
     const editSubjectModalState = ref(false)
+
+    // const tableTopRow = ref(generateTableTopRow('8', '17', []))
+    // const tableBody = ref(generateTableBody())
 
     const openNewSubjectModal = (): void => {
       newSubjectModalState.value = !newSubjectModalState.value
@@ -109,11 +129,11 @@ export default defineComponent({
 }
 
 .subject-id {
-  @apply text-xl font-sans font-bold;
+  @apply text-xl font-sans font-bold break-words;
 }
 
 .subject-name {
-  @apply text-lg font-sans font-normal;
+  @apply text-base font-sans font-normal break-all;
 }
 
 .modal {
@@ -123,5 +143,16 @@ export default defineComponent({
 .page-wrapper {
   @apply w-full bg-gray-200;
   min-height: calc(100vh - 64px);
+}
+
+.subject-table-section {
+  @apply overflow-x-auto;
+}
+.subject-table {
+  @apply border-collapse m-2 w-11/12;
+
+  tr, td {
+    @apply border-black border-2 whitespace-nowrap text-center font-sans text-sm;
+  }
 }
 </style>

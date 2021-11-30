@@ -2,7 +2,7 @@ import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
 
 import * as Page from '@/views'
 
-const routes: RouteRecordRaw[] = [
+const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'Home',
