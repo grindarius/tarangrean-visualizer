@@ -6,7 +6,7 @@
         <!-- header -->
         <div class="modal-title">
           <h1>{{ headerMessage }}</h1>
-          <button class="modal-close-button-icon" @click="$emit('update:editSubjectModalState', !editSubjectModalState)">
+          <button class="modal-close-button-icon" @click="onModalClose">
             <mdicon class="close-modal-icon" name="close-circle-outline" />
           </button>
         </div>
@@ -46,7 +46,7 @@
             {{ errorMessage }}
           </h1>
           <div>
-            <button class="modal-close-button" type="button" @click="$emit('update:editSubjectModalState', !editSubjectModalState)">
+            <button class="modal-close-button" type="button" @click="onModalClose">
               Close
             </button>
             <button class="modal-close-button" type="button" @click="removeSubject">
@@ -64,14 +64,13 @@
 </template>
 
 <script lang="ts">
-import cloneDeep from 'lodash/cloneDeep'
 import tinycolor, { Instance } from 'tinycolor2'
-import { computed, ComputedRef, defineComponent, PropType, Ref, ref, watch } from 'vue'
+import { computed, ComputedRef, defineComponent, PropType, Ref, ref, toRefs } from 'vue'
 
 import DayDropdown from '@/components/day-dropdown.vue'
 import TimeDropdown from '@/components/time-dropdown.vue'
 import { useError } from '@/composables'
-import { createTimeScheduleString, generateTimeSequence, randomColor } from '@/helpers'
+import { createTimeScheduleString, generateTimeSequence, isMoreThan, randomColor } from '@/helpers'
 import { DayInWeek, Subject, SubjectSchedule, Time } from '@/types'
 
 export default defineComponent({
@@ -97,18 +96,18 @@ export default defineComponent({
     'removeSubject'
   ],
   setup (props, context) {
-    const localSubject = ref(cloneDeep(props.subject))
+    const { subject: localSubject } = toRefs(props)
 
     const headerMessage = computed(() => {
       return localSubject.value.id || 'Edit Subject'
     })
 
-    const selectedDate: Ref<DayInWeek> = ref('Monday')
-    const selectedStartTime: Ref<Time> = ref({
+    const selectedDate: Ref<DayInWeek | undefined> = ref('Monday')
+    const selectedStartTime: Ref<Time | undefined> = ref({
       hour: 8,
       minute: 0
     })
-    const selectedEndTime: Ref<Time> = ref({
+    const selectedEndTime: Ref<Time | undefined> = ref({
       hour: 8,
       minute: 50
     })
@@ -138,6 +137,26 @@ export default defineComponent({
     }
 
     const addNewSchedule = (): void => {
+      if (selectedDate.value == null) {
+        createError('Error: Schedule\'s day is not selected.')
+        return
+      }
+
+      if (selectedStartTime.value == null) {
+        createError('Error: Schedules\'s start time is not selected.')
+        return
+      }
+
+      if (selectedEndTime.value == null) {
+        createError('Error: Schedules\'s end time is not selected.')
+        return
+      }
+
+      if (isMoreThan(selectedStartTime.value, selectedEndTime.value)) {
+        createError('Error: End time is less than start time.')
+        return
+      }
+
       localSubject.value.schedule.push({
         day: selectedDate.value,
         startTime: selectedStartTime.value,
@@ -171,7 +190,7 @@ export default defineComponent({
     }
 
     const removeSubject = (): void => {
-      context.emit('update:editSubjectModalState', !props.editSubjectModalState)
+      closeModal()
       context.emit('removeSubject', localSubject.value.uid)
     }
 
@@ -184,7 +203,7 @@ export default defineComponent({
       }
 
       context.emit('update:subject', localSubject.value)
-      context.emit('update:editSubjectModalState', !props.editSubjectModalState)
+      closeModal()
     }
 
     const randomizePastelColor = (): void => {
@@ -195,9 +214,17 @@ export default defineComponent({
       localSubject.value.color = mixedWithWhite.toHexString()
     }
 
-    watch(() => props.subject, (value) => {
-      localSubject.value = value
-    }, { deep: true })
+    const onModalClose = (): void => {
+      if (validateInputs() === '') {
+        closeModal()
+      } else {
+        createError(validateInputs())
+      }
+    }
+
+    const closeModal = (): void => {
+      context.emit('update:editSubjectModalState', !props.editSubjectModalState)
+    }
 
     return {
       startTimeDropdown,
@@ -213,6 +240,8 @@ export default defineComponent({
       submitSubject,
       headerMessage,
       removeSubject,
+      closeModal,
+      onModalClose,
       timeScheduleString,
       randomizePastelColor
     }
