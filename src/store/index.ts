@@ -146,18 +146,8 @@ const store = createStore<StoreVariables>({
           }
         })
     },
-    lunchTime (state): UserSelectedTimeSequence {
-      return state.userSelectedTimeSequence.find(seq => seq.lunch) ?? {
-        startTime: {
-          hour: 0,
-          minute: 0
-        },
-        endTime: {
-          hour: 0,
-          minute: 0
-        },
-        lunch: true
-      }
+    lunchTime (state): UserSelectedTimeSequence | undefined {
+      return state.userSelectedTimeSequence.find(seq => seq.lunch)
     }
   },
   mutations: {
