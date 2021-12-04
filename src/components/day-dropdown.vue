@@ -1,7 +1,7 @@
 <template>
   <div class="inline-block relative">
     <button
-      class="py-2 px-4 inline-flex items-center justify-between outline-none w-full ring-blue-500 bg-blue-500 rounded-lg h-9 text-white font-sans"
+      class="dropdown-toggle-button"
       @click="toggleDropdown">
       <span class="mr-1">
         {{ buttonWord }}
@@ -15,7 +15,7 @@
       style="min-width: 12rem;">
       <li class="link-wrapper" v-for="(day, i) in daysInWeek" :key="`day-dropdown-${i}`">
         <div
-          :class="selectedDate != null && day === localSelectedDate ? 'cursor-pointer py-2 px-4 block whitespace-nowrap selected' : 'cursor-pointer py-2 px-4 block whitespace-nowrap not-selected'"
+          :class="selectedDate != null && day === localSelectedDate ? 'dropdown-selector selected' : 'dropdown-selector not-selected'"
           @click="onSelectDate(day)">
           {{ day }}
         </div>
@@ -96,5 +96,13 @@ export default defineComponent({
 
 .not-selected {
   @apply bg-white;
+}
+
+.dropdown-toggle-button {
+  @apply py-2 px-4 inline-flex items-center justify-between outline-none w-full ring-blue-500 bg-blue-500 rounded-lg h-9 text-white font-sans;
+}
+
+.dropdown-selector {
+  @apply cursor-pointer py-2 px-4 block whitespace-nowrap;
 }
 </style>
