@@ -28,8 +28,8 @@
           <div class="datetime-controls">
             <div class="datetime-selector-section">
               <day-dropdown v-model:selectedDate="selectedDate"></day-dropdown>
-              <time-dropdown v-model:selectedTime="selectedStartTime" :timeArray="startTimeDropdown"></time-dropdown>
-              <time-dropdown v-model:selectedTime="selectedEndTime" :timeArray="endTimeDropdown"></time-dropdown>
+              <time-dropdown v-model:selectedTime="selectedStartTime" :is-start-time="true"></time-dropdown>
+              <time-dropdown v-model:selectedTime="selectedEndTime" :is-start-time="false"></time-dropdown>
               <mdicon class="add-new-subject-schedule" name="plus-circle-outline" @click="addNewSchedule" />
             </div>
             <div v-for="(schedule, i) in localSubject.schedule" :key="i" class="selected-datetimes">
@@ -65,12 +65,12 @@
 
 <script lang="ts">
 import tinycolor, { Instance } from 'tinycolor2'
-import { computed, ComputedRef, defineComponent, PropType, Ref, ref, toRefs } from 'vue'
+import { computed, defineComponent, PropType, Ref, ref, toRefs } from 'vue'
 
 import DayDropdown from '@/components/day-dropdown.vue'
 import TimeDropdown from '@/components/time-dropdown.vue'
 import { useError } from '@/composables'
-import { createTimeScheduleString, generateTimeSequence, isMoreThan, randomColor } from '@/helpers'
+import { createTimeScheduleString, isMoreThan, randomColor } from '@/helpers'
 import { DayInWeek, Subject, SubjectSchedule, Time } from '@/types'
 
 export default defineComponent({
@@ -113,24 +113,6 @@ export default defineComponent({
     })
 
     const { errorMessage, createError } = useError()
-
-    const startTimeDropdown: Ref<Array<Time>> = ref(generateTimeSequence(
-      { hour: 8, minute: 0 },
-      { hour: 20, minute: 0 },
-      [{ hour: 12, minute: 0 }]
-    ))
-    const endTimeDropdown: ComputedRef<Array<Time>> = computed(() => {
-      const mappedTimeDropdown = startTimeDropdown.value.map(time => {
-        return {
-          hour: time.hour,
-          minute: 50
-        }
-      })
-
-      return selectedStartTime.value == null
-        ? mappedTimeDropdown
-        : mappedTimeDropdown.filter(time => selectedStartTime.value != null && time.hour >= selectedStartTime.value.hour)
-    })
 
     const timeScheduleString = (schedule: SubjectSchedule): string => {
       return createTimeScheduleString(schedule.day, schedule.startTime, schedule.endTime)
@@ -227,8 +209,6 @@ export default defineComponent({
     }
 
     return {
-      startTimeDropdown,
-      endTimeDropdown,
       selectedDate,
       selectedStartTime,
       selectedEndTime,

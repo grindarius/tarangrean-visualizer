@@ -27,9 +27,9 @@
           <label for="subject-time" class="subject-time-label">Time</label>
           <div class="datetime-controls">
             <div class="datetime-selector-section">
-              <day-dropdown v-model:selectedDate="selectedDate">Day</day-dropdown>
-              <time-dropdown v-model:selectedTime="selectedStartTime" :timeArray="startTimeDropdown">Start time</time-dropdown>
-              <time-dropdown v-model:selectedTime="selectedEndTime" :timeArray="endTimeDropdown">End time</time-dropdown>
+              <day-dropdown v-model:selected-date="selectedDate">Day</day-dropdown>
+              <time-dropdown v-model:selected-time="selectedStartTime" :is-start-time="true">Start time</time-dropdown>
+              <time-dropdown v-model:selected-time="selectedEndTime" :is-start-time="false">End time</time-dropdown>
               <mdicon class="add-new-subject-schedule" name="plus-circle-outline" @click="addNewSchedule" />
             </div>
             <div v-for="(schedule, i) in subjectSchedules" :key="i" class="selected-datetimes">
@@ -62,13 +62,13 @@
 
 <script lang="ts">
 import { nanoid } from 'nanoid'
-import { computed, ComputedRef, defineComponent, PropType, Ref, ref } from 'vue'
+import { defineComponent, PropType, Ref, ref } from 'vue'
 
 import DayDropdown from '@/components/day-dropdown.vue'
 import TimeDropdown from '@/components/time-dropdown.vue'
 import { useError, useSubjectColor } from '@/composables'
 import { daysInWeek } from '@/constants'
-import { createTimeRangeString, generateTimeSequence, isMoreThan } from '@/helpers'
+import { createTimeRangeString, isMoreThan } from '@/helpers'
 import { DayInWeek, Subject, SubjectSchedule, Time } from '@/types'
 
 export default defineComponent({
@@ -111,25 +111,6 @@ export default defineComponent({
     const subjectSchedules: Ref<Array<SubjectSchedule>> = ref([])
 
     const { errorMessage, createError } = useError()
-
-    const startTimeDropdown: Ref<Array<Time>> = ref(generateTimeSequence(
-      { hour: 8, minute: 0 },
-      { hour: 20, minute: 0 },
-      [{ hour: 12, minute: 0 }]
-    ))
-
-    const endTimeDropdown: ComputedRef<Array<Time>> = computed(() => {
-      const mappedTimeDropdown = startTimeDropdown.value.map(time => {
-        return {
-          hour: time.hour,
-          minute: 50
-        }
-      })
-
-      return selectedStartTime.value == null
-        ? mappedTimeDropdown
-        : mappedTimeDropdown.filter(time => selectedStartTime.value != null && time.hour >= selectedStartTime.value.hour)
-    })
 
     const generateTimeScheduleString = (schedule: SubjectSchedule): string => {
       return `${schedule.day}, ${createTimeRangeString(schedule.startTime ?? { hour: 0, minute: 0 }, schedule.endTime ?? { hour: 0, minute: 0 })}`
@@ -226,8 +207,6 @@ export default defineComponent({
     }
 
     return {
-      startTimeDropdown,
-      endTimeDropdown,
       selectedDate,
       selectedStartTime,
       selectedEndTime,

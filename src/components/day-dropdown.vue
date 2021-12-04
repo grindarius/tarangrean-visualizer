@@ -11,7 +11,7 @@
       </svg>
     </button>
     <ul
-      :class="status ? 'absolute hidden text-black font-sans pt-1 filter drop-shadow-lg' : 'absolute block text-black font-sans pt-1 filter drop-shadow-lg'"
+      :class="status ? 'dropdown-list hidden' : 'dropdown-list block'"
       style="min-width: 12rem;">
       <li class="link-wrapper" v-for="(day, i) in daysInWeek" :key="`day-dropdown-${i}`">
         <div
@@ -100,6 +100,10 @@ export default defineComponent({
 
 .dropdown-toggle-button {
   @apply py-2 px-4 inline-flex items-center justify-between outline-none w-full ring-blue-500 bg-blue-500 rounded-lg h-9 text-white font-sans;
+}
+
+.dropdown-list {
+  @apply absolute text-black font-sans pt-1 filter drop-shadow-xl;
 }
 
 .dropdown-selector {

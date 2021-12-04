@@ -21,8 +21,8 @@
           </div>
         </div>
       </div>
-      <!-- <h1 class="text-3xl text-black font-sans my-3">Table</h1>
-      <div class="subject-table-section">
+      <h1 class="text-3xl text-black font-sans my-3">Table</h1>
+      <!-- <div class="subject-table-section">
         <table class="subject-table">
           <thead>
             <tr>
@@ -57,7 +57,7 @@ import { defineComponent, Ref, ref } from 'vue'
 
 import EditSubjectModal from '@/components/edit-subject-modal.vue'
 import NewSubjectModal from '@/components/new-subject-modal.vue'
-import { isColorLight } from '@/helpers'
+import { generateTableTopRow, isColorLight } from '@/helpers'
 import { Subject } from '@/types'
 
 export default defineComponent({
@@ -73,8 +73,15 @@ export default defineComponent({
     const newSubjectModalState = ref(false)
     const editSubjectModalState = ref(false)
 
-    // const tableTopRow = ref(generateTableTopRow('8', '17', []))
-    // const tableBody = ref(generateTableBody())
+    // const timeSequence: Ref<UserSelectedTimeSequence> = ref(userSelectedTimeSequence)
+
+    // const timeRangeOfEachSubject = ref()
+
+    const tableTopRow = ref(generateTableTopRow(
+      { hour: 8, minute: 0 },
+      { hour: 17, minute: 0 },
+      []
+    ))
 
     const openNewSubjectModal = (): void => {
       newSubjectModalState.value = !newSubjectModalState.value

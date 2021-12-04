@@ -1,3 +1,4 @@
+export * from './array'
 export * from './color'
 export * from './random'
 export * from './table'

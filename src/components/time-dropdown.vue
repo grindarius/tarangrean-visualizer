@@ -25,10 +25,12 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, PropType, Ref, ref } from 'vue'
+import { computed, ComputedRef, defineComponent, PropType, Ref, ref } from 'vue'
+import { Store, useStore } from 'vuex'
 
 import { daysInWeek } from '@/constants'
 import { createTimeSequenceString, isSameTime } from '@/helpers'
+import { StoreVariables } from '@/store'
 import { Time } from '@/types'
 
 export default defineComponent({
@@ -38,16 +40,21 @@ export default defineComponent({
       type: Object as PropType<Time>,
       required: false
     },
-    timeArray: {
-      type: Array as PropType<Array<Time>>,
+    isStartTime: {
+      type: Boolean,
       required: true
     }
   },
   emits: ['update:selectedTime'],
   setup (props, context) {
-    const localTimeArray: Ref<Array<Time>> = ref(props.timeArray)
+    const store: Store<StoreVariables> = useStore()
+
     const localSelectedTime: Ref<Time | undefined> = ref(props.selectedTime)
     const status: Ref<boolean> = ref(true)
+
+    const localTimeArray: ComputedRef<Array<Time>> = computed(() => {
+      return props.isStartTime ? store.getters.startTime : store.getters.endTime
+    })
 
     const toggleDropdown = (): void => {
       status.value = !status.value
@@ -83,10 +90,10 @@ export default defineComponent({
       isSameTime,
       status,
       toggleDropdown,
-      localTimeArray,
       localSelectedTime,
       timeSequenceString,
       onSelectTime,
+      localTimeArray,
       daysInWeek,
       buttonWord
     }
@@ -112,7 +119,7 @@ export default defineComponent({
 }
 
 .time-dropdown {
-  @apply absolute text-black font-sans pt-1 filter drop-shadow-lg;
+  @apply absolute text-black font-sans pt-1 filter drop-shadow-xl;
 }
 
 .dropdown-selector {

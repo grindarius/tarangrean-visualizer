@@ -1,7 +1,14 @@
-export interface SubjectSchedule {
-  day: DayInWeek
+export interface TimePair {
   startTime: Time
   endTime: Time
+}
+
+export interface SubjectSchedule extends TimePair {
+  day: DayInWeek
+}
+
+export interface UserSelectedTimeSequence extends TimePair {
+  lunch: boolean
 }
 
 /**
@@ -25,9 +32,14 @@ export interface Time {
   minute: number
 }
 
-export interface Pair<T, U> {
-  key: T
-  value: U
-}
-
 export type TableArray = []
+
+export interface SubjectCell {
+  day: DayInWeek
+  startTime: Time
+  timespan: number
+  readonly uid: string
+  id: string
+  name: string
+  color: string
+}
