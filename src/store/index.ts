@@ -148,6 +148,9 @@ const store = createStore<StoreVariables>({
     },
     lunchTime (state): UserSelectedTimeSequence | undefined {
       return state.userSelectedTimeSequence.find(seq => seq.lunch)
+    },
+    timeSequenceLength (state): number {
+      return state.userSelectedTimeSequence.length
     }
   },
   mutations: {

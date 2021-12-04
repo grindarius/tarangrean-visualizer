@@ -11,6 +11,10 @@ export interface UserSelectedTimeSequence extends TimePair {
   lunch: boolean
 }
 
+export interface TableOptions extends UserSelectedTimeSequence, SubjectSchedule {
+  subjects: Array<Subject>
+}
+
 /**
  * Interface of a subject or a lesson you want to put in to create the table.
  */

@@ -22,22 +22,24 @@
         </div>
       </div>
       <h1 class="text-3xl text-black font-sans my-3">Table</h1>
-      <!-- <div class="subject-table-section">
+      <div class="subject-table-section">
         <table class="subject-table">
           <thead>
             <tr>
-              <td v-for="(column, i) in tableTopRow" :key="`top-row-${i}`">
+              <td v-for="(column, i) in topRow" :key="`top-row-${i}`">
                 {{ column }}
               </td>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(day, i) in tableBody" :key="`header-${i}`">
-              <td>{{ i }}</td>
+            <tr v-for="(column, i) in body" :key="`table-body-${i}`">
+              <td v-for="(cell, i) in column" :key="`table-cell-${i}`">
+                {{ cell }}
+              </td>
             </tr>
           </tbody>
         </table>
-      </div> -->
+      </div>
       <new-subject-modal
         v-model:new-subject-modal-state="newSubjectModalState"
         v-model:subjects="subjects">
@@ -54,10 +56,12 @@
 <script lang="ts">
 import tinycolor from 'tinycolor2'
 import { defineComponent, Ref, ref } from 'vue'
+import { Store, useStore } from 'vuex'
 
 import EditSubjectModal from '@/components/edit-subject-modal.vue'
 import NewSubjectModal from '@/components/new-subject-modal.vue'
-import { isColorLight } from '@/helpers'
+import { generateTableBody, generateTableTopRow, isColorLight } from '@/helpers'
+import { StoreVariables } from '@/store'
 import { Subject } from '@/types'
 
 export default defineComponent({
@@ -67,11 +71,16 @@ export default defineComponent({
     'edit-subject-modal': EditSubjectModal
   },
   setup () {
+    const store: Store<StoreVariables> = useStore()
+
     const subjects: Ref<Array<Subject>> = ref([])
     const selectedSubject: Ref<Subject> = ref({} as Subject)
 
     const newSubjectModalState = ref(false)
     const editSubjectModalState = ref(false)
+
+    const topRow = ref(generateTableTopRow(store.state.userSelectedTimeSequence))
+    const body = ref(generateTableBody(subjects.value, store.state.userSelectedTimeSequence))
 
     const openNewSubjectModal = (): void => {
       newSubjectModalState.value = !newSubjectModalState.value
@@ -96,6 +105,8 @@ export default defineComponent({
     return {
       openNewSubjectModal,
       subjects,
+      topRow,
+      body,
       newSubjectModalState,
       openEditSubjectModal,
       editSubjectModalState,
