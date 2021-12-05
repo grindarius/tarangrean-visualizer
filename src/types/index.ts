@@ -11,8 +11,8 @@ export interface UserSelectedTimeSequence extends TimePair {
   lunch: boolean
 }
 
-export interface TableOptions extends UserSelectedTimeSequence, SubjectSchedule {
-  subjects: Array<Subject>
+export interface TableCell extends UserSelectedTimeSequence, SubjectSchedule {
+  subjects: Array<SubjectCell>
 }
 
 /**
@@ -26,6 +26,10 @@ export interface Subject {
   schedule: Array<SubjectSchedule>
 }
 
+export interface SubjectCell extends Subject {
+  duration: number
+}
+
 /**
  * Each day in the week
  */
@@ -34,16 +38,4 @@ export type DayInWeek = 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursda
 export interface Time {
   hour: number
   minute: number
-}
-
-export type TableArray = []
-
-export interface SubjectCell {
-  day: DayInWeek
-  startTime: Time
-  timespan: number
-  readonly uid: string
-  id: string
-  name: string
-  color: string
 }

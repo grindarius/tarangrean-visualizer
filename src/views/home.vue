@@ -33,8 +33,8 @@
           </thead>
           <tbody>
             <tr v-for="(column, i) in body" :key="`table-body-${i}`">
-              <td v-for="(cell, i) in column" :key="`table-cell-${i}`">
-                {{ cell }}
+              <td v-for="(cell, i) in column" :key="`table-cell-${i}`" :class="isHidden(cell)" :rowspan="getRowSpan(cell)" class="hour-cell">
+                {{ writeToCell(cell, i) }}
               </td>
             </tr>
           </tbody>
@@ -55,14 +55,14 @@
 
 <script lang="ts">
 import tinycolor from 'tinycolor2'
-import { defineComponent, Ref, ref } from 'vue'
+import { computed, defineComponent, Ref, ref } from 'vue'
 import { Store, useStore } from 'vuex'
 
 import EditSubjectModal from '@/components/edit-subject-modal.vue'
 import NewSubjectModal from '@/components/new-subject-modal.vue'
 import { generateTableBody, generateTableTopRow, isColorLight } from '@/helpers'
 import { StoreVariables } from '@/store'
-import { Subject } from '@/types'
+import { Subject, TableCell } from '@/types'
 
 export default defineComponent({
   name: 'home',
@@ -80,7 +80,7 @@ export default defineComponent({
     const editSubjectModalState = ref(false)
 
     const topRow = ref(generateTableTopRow(store.state.userSelectedTimeSequence))
-    const body = ref(generateTableBody(subjects.value, store.state.userSelectedTimeSequence))
+    const body = computed(() => generateTableBody(subjects.value, store.state.userSelectedTimeSequence))
 
     const openNewSubjectModal = (): void => {
       newSubjectModalState.value = !newSubjectModalState.value
@@ -102,6 +102,34 @@ export default defineComponent({
         : { color: 'white' }
     }
 
+    const writeToCell = (cell: TableCell, index: number): string => {
+      if (index === 0) {
+        return cell.day
+      }
+
+      if (cell.subjects.length === 0) {
+        return ''
+      }
+
+      return ''
+    }
+
+    const getRowSpan = (cell: TableCell): number => {
+      if (cell.day === 'Sunday' && cell.lunch) {
+        return 0
+      } else {
+        return 1
+      }
+    }
+
+    const isHidden = (cell: TableCell): string => {
+      if (cell.lunch && cell.day !== 'Sunday') {
+        return 'hidden'
+      } else {
+        return ''
+      }
+    }
+
     return {
       openNewSubjectModal,
       subjects,
@@ -112,13 +140,20 @@ export default defineComponent({
       editSubjectModalState,
       selectedSubject,
       removeSubject,
-      fontColor
+      fontColor,
+      writeToCell,
+      getRowSpan,
+      isHidden
     }
   }
 })
 </script>
 
 <style scoped lang="scss">
+.hour-cell {
+
+}
+
 .subject-list {
   @apply grid gap-4;
   grid-template-columns: repeat(auto-fit, minmax(150px, 300px));
